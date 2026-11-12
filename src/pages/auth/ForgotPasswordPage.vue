@@ -1,5 +1,9 @@
+<script setup>
+    import AuthLayouts from '../../layouts/AuthLayouts.vue';
+</script>
+
 <template>
-    <main>
-        <h1>Reset Password</h1>
-    </main>
+    <AuthLayouts>
+        <h1>Forgot Password</h1>
+    </AuthLayouts>
 </template>
