@@ -3,6 +3,8 @@ import LoginPage from "./pages/auth/LoginPage.vue";
 import RegisterPage from "./pages/auth/RegisterPage.vue";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.vue";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage.vue";
+import ProjectPage from "./pages/project/ProjectPage.vue";
+import HomePage from "./pages/home/HomePage.vue";
 
 
 const router = createRouter({
@@ -27,6 +29,14 @@ const router = createRouter({
         {
             path: '/reset-confirmation',
             component: ResetPasswordPage
+        }, 
+        {
+            path: '/project',
+            component: ProjectPage
+        },
+        {
+            path: '/home',
+            component: HomePage
         }
     ]
 })

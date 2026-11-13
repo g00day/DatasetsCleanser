@@ -1,0 +1,12 @@
+.sidebar {
+    margin-left: 10px;
+}
+
+.home-btn {
+    border: 1px solid black; /* change color for right*/
+    border-radius: 5px;
+    text-decoration: none;
+    padding: 5px;
+    background-color: aliceblue;
+}
+
