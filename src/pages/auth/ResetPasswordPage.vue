@@ -1,7 +1,7 @@
 <script setup>
     import { reactive } from 'vue';
     import AuthField from '../../components/auth/AuthField.vue';
-    import AuthLayouts from '../../layouts/AuthLayouts.vue';
+    import AuthLayout from '../../layouts/AuthLayout.vue';
 
     const form = reactive({
         password: '',
@@ -16,7 +16,7 @@
 
 
 <template>
-    <AuthLayouts>
+    <AuthLayout>
         <h1>Восстановление пароля</h1>
 
         <form @submit.prevent="submitForm">
@@ -31,5 +31,5 @@
                 <RouterLink to="/register">Нет аккаунта?</RouterLink>
             </nav>
         </form>
-    </AuthLayouts>
+    </AuthLayout>
 </template>

@@ -1,8 +1,10 @@
 <script setup>
-
+    import WorkspaceLayout from '../../layouts/WorkspaceLayout.vue';
 </script>
 
 
 <template>
-    <h1>Home page</h1>
+    <WorkspaceLayout>
+        <h1>Main</h1>
+    </WorkspaceLayout>
 </template>

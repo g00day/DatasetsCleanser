@@ -1,5 +1,5 @@
 <script setup>
-    import AuthLayouts from '../../layouts/AuthLayouts.vue';
+    import AuthLayout from '../../layouts/AuthLayout.vue';
     import AuthField from '../../components/auth/AuthField.vue';
     import { reactive } from 'vue';
 
@@ -14,7 +14,7 @@
 </script>
 
 <template>
-    <AuthLayouts>
+    <AuthLayout>
         <h1>Вход</h1>
 
         <form @submit.prevent="submitForm">
@@ -28,5 +28,5 @@
                 <RouterLink to="/forgot-password">Забыли пароль?</RouterLink>
             </nav>
         </form>
-    </AuthLayouts>
+    </AuthLayout>
 </template>

@@ -1,15 +1,10 @@
 <script setup>
-    import Sidebar from '../../components/Sidebar.vue';
-    import ProjectLayout from '../../layouts/ProjectLayout.vue';
+    import WorkspaceLayout from '../../layouts/WorkspaceLayout.vue';
 </script>
 
 
 <template>
-    <ProjectLayout>
+    <WorkspaceLayout>
         <h1>Project</h1>
-        <Sidebar>
-
-        </Sidebar>
-
-    </ProjectLayout>
+    </WorkspaceLayout>
 </template>
