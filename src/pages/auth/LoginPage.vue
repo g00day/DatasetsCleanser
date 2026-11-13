@@ -15,7 +15,7 @@
 
 <template>
     <AuthLayouts>
-        <h1>Login</h1>
+        <h1>Вход</h1>
 
         <form @submit.prevent="submitForm">
             <AuthField v-model="form.login" label="Логин" id="login"/>

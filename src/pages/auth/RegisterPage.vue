@@ -19,7 +19,7 @@
 
 <template>
     <AuthLayouts>
-        <h1>Register</h1>
+        <h1>Регистрация</h1>
 
         <form @submit.prevent="submitForm">
             <AuthField v-model="form.login" label="Логин" id="login"/>
