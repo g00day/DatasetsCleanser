@@ -39,6 +39,25 @@ python manage.py run_jobs
 
 По умолчанию один CSV ограничен 10 МиБ, 256 столбцами, 100 000 строками, 500 000 ячейками и 65 536 символами на ячейку. На владельца выделено 512 МиБ и до четырёх заданий в очереди или обработке. Действующие ограничения можно получить через `GET /api/v1/capabilities`.
 
+## Запуск в Docker
+
+Скопируйте корневой `.env.example` в `.env` рядом с Dockerfile (в PowerShell — `Copy-Item .env.example .env`). Выполните команды из корня репозитория. Пример использует SQLite для локальной разработки:
+
+~~~sh
+docker build -t datasetcleanser-backend .
+docker volume create datasetcleanser-data
+docker run --rm --env-file .env -v datasetcleanser-data:/var/lib/datasetcleanser datasetcleanser-backend python manage.py migrate
+~~~
+
+Создайте общую сеть командой `docker network create datasetcleanser`, если она ещё не создана для фронтенда. Запустите API и обработчик из одного образа с общим томом:
+
+~~~sh
+docker run -d --name backend --env-file .env --network datasetcleanser -p 127.0.0.1:8000:8000 -v datasetcleanser-data:/var/lib/datasetcleanser datasetcleanser-backend
+docker run -d --name datasetcleanser-worker --env-file .env --network datasetcleanser -v datasetcleanser-data:/var/lib/datasetcleanser datasetcleanser-backend python manage.py run_jobs
+~~~
+
+Проверка API: `http://localhost:8000/api/v1/capabilities`. Для контейнера фронтенда в той же сети задайте `BACKEND_URL=http://backend:8000`. Для PostgreSQL передавайте одинаковые настройки базы и хранилища контейнерам API, миграций и обработчика.
+
 ## Фоновые задания
 
 Команда `run_jobs` опрашивает очередь в базе данных. Задания сохраняются после перезапуска приложения или обработчика. Для одного датасета обработка идёт последовательно, для разных датасетов может идти параллельно. Число обработчиков подбирается под нагрузку.

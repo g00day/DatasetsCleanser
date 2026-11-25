@@ -1,6 +1,7 @@
 /venv/
 /.venv/
 dataset_cleanser/.env
+/.env
 dataset_cleanser/db.sqlite3
 dataset_cleanser/private_files/
 __pycache__/

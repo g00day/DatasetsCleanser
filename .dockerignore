@@ -1,0 +1,12 @@
+**
+!Dockerfile
+!dataset_cleanser/
+!dataset_cleanser/**
+**/.env*
+**/.venv
+**/__pycache__
+**/*.pyc
+**/*.sqlite3*
+**/private_files
+**/media
+**/.pytest_cache
