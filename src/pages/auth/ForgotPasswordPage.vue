@@ -1,30 +1,11 @@
 <script setup>
-    import AuthLayout from '../../layouts/AuthLayout.vue';
-    import AuthField from '../../components/auth/AuthField.vue';
-    import { reactive } from 'vue';
-
-    const form = reactive({
-        email: ''
-    })
-
-    function submitForm(){
-        console.log(form)
-    }
+import AuthLayout from '../../layouts/AuthLayout.vue'
+import AccountForm from '../../components/auth/AccountForm.vue'
 </script>
 
 <template>
-    <AuthLayout>
-        <h1>Восстановление пароля</h1>
-
-        <form @submit.prevent="submitForm">
-            <AuthField v-model="form.email" label="Почта" id="email"/>
-
-            <button type="submit">Отправить письмо</button>
-
-            <nav class="auth-links" aria-label="Навигация авторизации">
-                <RouterLink to="/login">Вход</RouterLink>
-                <RouterLink to="/register">Нет аккаунта?</RouterLink>
-            </nav>
-        </form>
-    </AuthLayout>
+  <AuthLayout>
+    <h1>Восстановление пароля</h1>
+    <AccountForm mode="forgot" />
+  </AuthLayout>
 </template>

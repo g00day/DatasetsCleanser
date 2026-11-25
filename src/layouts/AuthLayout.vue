@@ -2,7 +2,7 @@
     <div class="auth-layout">
         <header class="auth-header">
             <RouterLink to="/" class="brand">
-                DatasetsCleanser
+                DatasetCleanser
             </RouterLink>
         </header>
 

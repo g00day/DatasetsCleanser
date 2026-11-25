@@ -1,61 +1,52 @@
 .sidebar {
-  width: 235px;
-  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 18px 14px;
+  border-right: 1px solid var(--line);
   background: #f4f7f5;
-  border-right: 1px solid #d9e3dd;
 }
 
-.home-btn,
-.project-item__name,
-.dataset-item,
-.dataset-add,
-.project-add {
+.sidebar > details {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar a,
+.sidebar summary {
   display: block;
-  width: 100%;
-  border: 0;
-  border-radius: 6px;
   padding: 10px 12px;
-  background: transparent;
-  color: #25332d;
-  text-align: left;
+  color: var(--ink);
   text-decoration: none;
+}
+
+.sidebar summary {
+  display: list-item;
   cursor: pointer;
 }
 
-.home-btn {
-  margin-bottom: 28px;
+.sidebar summary a {
+  display: inline;
+  padding: 0;
+}
+
+.sidebar details details {
+  margin: 8px 0;
+}
+
+.sidebar details details > :is(a, button) {
+  display: block;
+  width: calc(100% - 15px);
+  margin: 4px 0 4px 15px;
+}
+
+.sidebar a:hover,
+.sidebar .router-link-active {
   background: #e3ece6;
-  font-weight: 700;
+  border-radius: 6px;
 }
 
-.project-list__title {
-  margin: 0 0 10px;
-  color: #63736a;
-  font-size: 14px;
-}
-
-.project-item {
-  margin-bottom: 10px;
-}
-
-.project-item__datasets {
-  padding-left: 15px;
-}
-
-.dataset-item,
-.dataset-add {
-  margin-top: 4px;
-  background: #ffffff;
-}
-
-.dataset-add,
-.project-add {
-  background: #26744e;
-  color: #ffffff;
-}
-
-.project-add {
-  margin-top: 24px;
-  text-align: center;
+.add-project {
+  flex-shrink: 0;
+  margin-top: auto;
 }

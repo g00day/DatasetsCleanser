@@ -1,54 +1,22 @@
 <script setup>
-const projects = [
-  {
-    id: 1,
-    name: 'Для ИИ',
-    datasets: ['Клиенты', 'Заказы'],
-  },
-  {
-    id: 2,
-    name: 'Каталог магазина',
-    datasets: ['Товары'],
-  },
-  {
-    id: 3,
-    name: 'Новый проект',
-    datasets: [],
-  },
-]
+import { inject } from 'vue'
+import LoadResource from '../LoadResource.vue'
+import { list } from '../../api/client'
+
+const load = () => list('projects')
+const openDialog = inject('openProjectDialog')
 </script>
 
 <template>
-  <section class="project-list">
-    <p class="project-list__title">Проекты</p>
-
-    <article
-      v-for="project in projects"
-      :key="project.id"
-      class="project-item"
-    >
-      <button class="project-item__name" type="button">
-        {{ project.name }}
-      </button>
-
-      <div class="project-item__datasets">
-        <button
-          v-for="dataset in project.datasets"
-          :key="dataset"
-          class="dataset-item"
-          type="button"
-        >
-          {{ dataset }}
-        </button>
-
-        <button class="dataset-add" type="button">
-          + Добавить датасет
-        </button>
-      </div>
-    </article>
-
-    <button class="project-add" type="button">
-      + Добавить проект
-    </button>
-  </section>
+  <LoadResource :load="load" v-slot="{ data: projects }">
+    <details v-for="project in projects" :key="project.id" open>
+      <summary><RouterLink :to="'/projects/' + project.id">{{ project.name }}</RouterLink></summary>
+      <LoadResource :load="() => list('datasets', { id: project.id })" v-slot="{ data }">
+        <RouterLink v-for="dataset in data" :key="dataset.id" :to="'/datasets/' + dataset.id">
+          {{ dataset.name }}
+        </RouterLink>
+      </LoadResource>
+      <button class="primary" @click="openDialog('upload', project)">+ Добавить датасет</button>
+    </details>
+  </LoadResource>
 </template>

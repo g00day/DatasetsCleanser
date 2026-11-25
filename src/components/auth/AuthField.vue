@@ -1,30 +1,18 @@
 <script setup>
-    defineProps({
-        label: {
-            type: String,
-            required: true 
-        },
-        id: {
-            type: String,
-            required: true
-        },
-        type: {
-            type: String,
-            default: 'text'
-        },
-        placeholder: {
-            type: String,
-            default: ''
-        }
-    })
-
-    const model = defineModel()
+defineProps({
+  label: String,
+  id: String,
+  type: { type: String, default: 'text' },
+  autocomplete: String,
+  minlength: Number,
+})
+const model = defineModel()
 </script>
 
 <template>
-    <div class="auth-field">
-        <label :for="id">{{label}}</label>
-
-        <input :id="id" v-model="model" :type="type" :placeholder="placeholder"/>
-    </div>
+  <div class="auth-field">
+    <label :for="id">{{ label }}</label>
+    <input v-model="model" :id="id" :type="type" :autocomplete="autocomplete"
+      :minlength="minlength" required />
+  </div>
 </template>
