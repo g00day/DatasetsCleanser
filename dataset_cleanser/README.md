@@ -1,51 +1,60 @@
-# DatasetCleanser API
+# API DatasetCleanser
 
-Django REST Framework API for CSV projects, quality checks, cleaning runs, audit events, and versioned exports. Endpoints use the /api/v1/ prefix and return JSON field names in camelCase. Browser requests authenticate through the dc_session HttpOnly cookie and must include an X-CSRFToken obtained from /api/v1/auth/csrf.
+Сервис на Django REST Framework управляет проектами и CSV-датасетами, проверяет качество данных, выполняет очистку и ведёт журнал изменений. Маршруты начинаются с `/api/v1/`, имена полей JSON записаны в camelCase. Браузер передаёт серверную сессию в HttpOnly-cookie `dc_session`. Для изменяющих запросов получите токен через `GET /api/v1/auth/csrf` и передайте его в заголовке `X-CSRFToken`.
 
-## Setup
+## Установка и запуск
 
-Use Python 3.12 or newer and PostgreSQL 14 or newer. Copy dataset_cleanser/.env.example to dataset_cleanser/.env, set a private production SECRET_KEY, and configure your database and email provider. The default local development configuration uses SQLite, an insecure development-only key, and host localhost. Set DJANGO_PRODUCTION=true to require an explicit secret key.
+Требуется Python 3.12 или новее. Для локальной разработки по умолчанию используется SQLite, для развёртывания — PostgreSQL 14 или новее. Из корня репозитория перейдите в каталог с `manage.py`:
 
 ~~~sh
-python -m venv .venv
-.venv/bin/pip install -r requirements.txt
 cd dataset_cleanser
-../.venv/bin/python manage.py check
-../.venv/bin/python manage.py migrate
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python manage.py check
+python manage.py migrate
 ~~~
 
-In a second process, run the database-backed worker. Jobs remain in the database if the worker or application restarts.
+В PowerShell виртуальное окружение активируется командой `.\.venv\Scripts\Activate.ps1`. При настройке окружения скопируйте `.env.example` в `.env`. Для SQLite оставьте `DATABASE_NAME` пустым и задайте `SQLITE_PATH=db.sqlite3`.
+
+Запустите API и обработчик заданий в двух терминалах с активированным окружением:
 
 ~~~sh
-../.venv/bin/python manage.py run_jobs
+python manage.py runserver 127.0.0.1:8000
 ~~~
-
-For local development, run the API in another terminal with ../.venv/bin/python manage.py runserver 127.0.0.1:8000.
-
-Configure SMTP before enabling password reset for real users. In development, the default SMTP settings send mail to localhost on port 25. For isolated development, use Django's EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend, which prints recovery links to the terminal.
-
-## Configuration
-
-DJANGO_PRODUCTION, SECRET_KEY, DJANGO_ALLOWED_HOSTS, DJANGO_SECURE_COOKIES, DJANGO_TRUST_PROXY_HTTPS, DJANGO_CSRF_TRUSTED_ORIGINS, API_CORS_ORIGINS, DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, SQLITE_PATH, PRIVATE_FILE_ROOT, MAX_FILE_BYTES, MAX_OWNER_STORAGE_BYTES, MAX_ACTIVE_JOBS_PER_OWNER, JOB_TIMEOUT_SECONDS, JOB_LEASE_SECONDS, API_SESSION_IDLE_SECONDS, API_SESSION_MAX_SECONDS, API_RESET_TOKEN_SECONDS, FRONTEND_URL, DEFAULT_FROM_EMAIL, EMAIL_BACKEND, EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_USE_TLS, and EMAIL_USE_SSL configure the service. See .env.example for names and safe initial values. Production session and CSRF cookies are secure by default. Add only explicitly approved frontend origins. Do not configure API_CORS_ORIGINS=*.
-
-Uploads and version exports live under PRIVATE_FILE_ROOT, outside Django's public media route. Back up this directory together with the PostgreSQL database. Keep database and file-storage snapshots consistent when restoring.
-
-The service limits one CSV upload to 10 MiB, 256 columns, 100,000 rows, 500,000 cells, and 65,536 characters per cell by default. Storage is limited to 512 MiB per owner, with four queued or running jobs per owner. These values can be overridden through the matching environment variables and are returned by /api/v1/capabilities.
-
-## Background work
-
-run_jobs polls durable SQL jobs. Run enough worker processes for expected throughput. Jobs for the same dataset are serialized, while different datasets can be processed concurrently. Keep JOB_LEASE_SECONDS below or equal to JOB_TIMEOUT_SECONDS. The worker renews leases while processing, detects lost workers, and retries only failures identified as recoverable.
-
-## Tests
-
-The endpoint tests use DRF's APIClient with CSRF checks enabled. A fast local run uses SQLite.
 
 ~~~sh
-.venv/bin/python manage.py test
+python manage.py run_jobs
 ~~~
 
-Run the same suite against PostgreSQL in CI, including the idempotency and concurrent-submission test.
+## Настройки
 
-## Routes
+Полный список переменных с начальными значениями приведён в `.env.example`.
 
-The API provides authentication, projects, uploads, datasets, versions, row pages and cell values, downloads, quality checks, cleaning runs, audit events, and job retries. Generate migrations after model changes with python manage.py makemigrations.
+- **Django.** По умолчанию разрешён локальный хост и используется ключ для разработки. Для рабочего сервера включите `DJANGO_PRODUCTION=true`, задайте собственный `SECRET_KEY` и перечислите допустимые хосты в `DJANGO_ALLOWED_HOSTS`. В рабочем режиме для cookie сессии и CSRF по умолчанию включён флаг Secure. Для HTTPS за доверенным прокси предусмотрен `DJANGO_TRUST_PROXY_HTTPS`.
+- **Фронтенд.** Укажите его адрес в `FRONTEND_URL` для ссылок восстановления пароля. В `API_CORS_ORIGINS` и `DJANGO_CSRF_TRUSTED_ORIGINS` перечисляйте конкретные доверенные адреса со схемой и портом. Значение `*` для CORS запрещено.
+- **Сессии.** Срок бездействия, максимальная длительность сессии и срок действия ссылки восстановления задаются через `API_SESSION_IDLE_SECONDS`, `API_SESSION_MAX_SECONDS` и `API_RESET_TOKEN_SECONDS`.
+- **Почта.** Настройте SMTP и адрес отправителя перед включением восстановления пароля для пользователей. По умолчанию SMTP доступен по адресу `localhost:25` в настройках приложения. Для разработки задайте `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend`, чтобы выводить письмо со ссылкой в терминал.
+- **Хранилище.** Настройки подключения к PostgreSQL задаются переменными `DATABASE_*`. Загруженные файлы и экспорт версий находятся в `PRIVATE_FILE_ROOT`, вне публичных каталогов Django. Создавайте и восстанавливайте согласованные резервные копии базы и этого каталога.
+
+По умолчанию один CSV ограничен 10 МиБ, 256 столбцами, 100 000 строками, 500 000 ячейками и 65 536 символами на ячейку. На владельца выделено 512 МиБ и до четырёх заданий в очереди или обработке. Действующие ограничения можно получить через `GET /api/v1/capabilities`.
+
+## Фоновые задания
+
+Команда `run_jobs` опрашивает очередь в базе данных. Задания сохраняются после перезапуска приложения или обработчика. Для одного датасета обработка идёт последовательно, для разных датасетов может идти параллельно. Число обработчиков подбирается под нагрузку.
+
+Значение `JOB_LEASE_SECONDS` должно быть не больше `JOB_TIMEOUT_SECONDS`. Во время работы обработчик продлевает срок резервирования задания. Система обнаруживает прерванные задания и допускает повторную попытку при устранимых ошибках.
+
+## Тесты
+
+Тесты API используют клиент DRF с включённой проверкой CSRF. Для быстрого локального запуска подходит SQLite:
+
+~~~sh
+python manage.py test
+~~~
+
+В CI запускайте тот же набор тестов на PostgreSQL, включая проверки идемпотентности и одновременной отправки запросов.
+
+## Маршруты и миграции
+
+API поддерживает вход и регистрацию, проекты, загрузки, датасеты и их версии, постраничное чтение строк и значений ячеек, скачивание файлов, проверки качества, очистку, аудит и повторный запуск заданий. После изменения моделей создайте миграции командой `python manage.py makemigrations`.
