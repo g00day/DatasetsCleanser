@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework.response import Response
 
-from auth_app.api import PublicAuthView
+from auth_app.views import PublicAuthView
 
 from .http import query
 from .models import DataType

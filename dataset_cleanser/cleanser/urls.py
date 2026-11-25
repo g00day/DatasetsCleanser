@@ -1,6 +1,6 @@
 from django.urls import path
 
-from auth_app import api as auth
+from auth_app import views as auth
 
 from . import views
 from .catalog import CapabilitiesView
