@@ -1,51 +1,65 @@
-from django.db import models
-from django.conf import settings
-
-from django.contrib.auth.models import AbstractUser
-
-import datetime
-
 import uuid
 
-import jwt
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser, UserManager
+from django.db import models
+
+
+def identity_key(value):
+    return value.strip().casefold()
+
+
+class AccountManager(UserManager):
+    def get_by_natural_key(self, username):
+        return self.get(username_key=identity_key(username))
+
+    async def aget_by_natural_key(self, username):
+        return await self.aget(username_key=identity_key(username))
 
 
 class Account(AbstractUser):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=256, unique=True, verbose_name="Email address")
     username = models.CharField(max_length=45, unique=True, verbose_name="Username")
-    avatar = models.ImageField(upload_to='bakot/static/bakot/imagination', height_field=None, width_field=None, blank=True, null=True, verbose_name="Profile picture")
-    created_at = models.DateTimeField(auto_now_add=True, editable=False, verbose_name="Registration time")
-    updated_at = models.DateTimeField(null=True, verbose_name="Updated at")
+    username_key = models.TextField(unique=True, editable=False)
+    avatar = models.ImageField(
+        upload_to="bakot/static/bakot/imagination", blank=True, null=True, verbose_name="Profile picture",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Registration time")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")
 
-    def __str__(self):
-        return self.username
-    
-    @property
-    def get_token(self):
-        """
-        Allows you to get a user token by calling user.token, instead of
-        user._generate_jwt_token().
-        """
-        return self._generate_jwt_token()
-    
-    # The next methods are hidden 
-    # And available to call only inside this class 
-    # --------------------------------------------
-    # Because they operate with secured data,
-    # such as SECRET_KEY
+    objects = AccountManager()
 
-    def _generate_jwt_token(self):
-        """
-        Generates JWT token which stores the id, 
-        activation_time(which is actual for 1 day) of this user
-        """
-        dt = datetime.datetime.now() + datetime.timedelta(days=1)
+    def save(self, *args, **kwargs):
+        self.username = self.username.strip()
+        self.username_key = identity_key(self.username)
+        self.email = identity_key(self.email)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "username" in update_fields:
+            kwargs["update_fields"] = {*update_fields, "username_key"}
+        return super().save(*args, **kwargs)
 
-        token_payload = {
-                'id': str(self.id),
-                'exp': dt
-                }
-        token = str(jwt.encode(token_payload, settings.SECRET_KEY, algorithm='HS256'))
-        
-        return token[2:len(token) - 1] #There we slicing token to be without prefix
+
+class Session(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_seen_at = models.DateTimeField()
+    expires_at = models.DateTimeField(db_index=True)
+    revoked_at = models.DateTimeField(null=True)
+
+
+class PasswordResetToken(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+    used_at = models.DateTimeField(null=True)
+
+
+class AuthRateLimit(models.Model):
+    key = models.CharField(max_length=64, primary_key=True)
+    window_start = models.DateTimeField(db_index=True)
+    count = models.PositiveIntegerField(default=0)
