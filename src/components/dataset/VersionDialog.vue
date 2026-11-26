@@ -8,7 +8,7 @@ const props = defineProps({ mode: String, dataset: Object, version: Object, conf
 const emit = defineEmits(['close', 'saved'])
 const titles = {
   clean: 'Очистка данных', rename: 'Переименование версии', download: 'Скачивание версии',
-  columns: 'Столбцы для проверки', score: 'Оценка качества',
+  columns: 'Столбцы для проверки',
 }
 const name = ref(props.mode === 'rename' ? props.version.name : '')
 const selected = ref([...props.configuration.columnIds])
@@ -84,8 +84,7 @@ for (const col of props.version.columns) actions.value[col.id] = ''
 
 <template>
   <BaseDialog :title="titles[mode]" :busy="busy" @close="emit('close')">
-    <p v-if="mode === 'score'">Оценка относится к последней успешной проверке выбранных столбцов. Прочерк означает, что оценка ещё не рассчитана.</p>
-    <form v-else class="dialog-form" @submit.prevent="submit">
+    <form class="dialog-form" @submit.prevent="submit">
       <label v-if="['clean', 'rename'].includes(mode)">Название версии
         <input v-model.trim="name" required maxlength="80" />
       </label>

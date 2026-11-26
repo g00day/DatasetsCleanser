@@ -14,6 +14,14 @@ const dialog = ref('')
 const filters = ref({})
 const busy = ref(false)
 const error = ref('')
+const percentFormat = new Intl.NumberFormat('ru-RU', {
+  style: 'percent',
+  maximumFractionDigits: 4,
+})
+
+function formatScore(score) {
+  return score == null ? '—' : percentFormat.format(score / 100)
+}
 const states = {
   ready: 'Проверка завершена', failed: 'Ошибка проверки', not_checked: 'Не проверен',
   queued: 'В очереди', running: 'Идёт проверка',
@@ -70,10 +78,9 @@ async function check(revision) {
       <div>Проверено строк<strong>{{ data.quality.result?.checkedRowCount ?? '—' }}</strong></div>
       <div>Столбцы для проверки<strong>{{ data.quality.selectedColumnCount }} из {{ data.version.columnCount }}</strong></div>
       <div>Проблем<strong>{{ data.quality.result?.issueCount ?? '—' }}</strong></div>
-      <div>Оценка качества<strong>{{ data.quality.result?.qualityScore ?? '—' }}</strong></div>
+      <div>Оценка качества<strong>{{ formatScore(data.quality.result?.qualityScore) }}</strong></div>
     </div>
     <div class="actions">
-      <button @click="dialog = 'score'">Как считается оценка?</button>
       <button @click="dialog = 'columns'">Столбцы для проверки</button>
       <button :disabled="busy" @click="check(data.configuration.revision)">{{ busy ? 'Проверяем…' : 'Проверить' }}</button>
     </div>
