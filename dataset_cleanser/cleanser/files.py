@@ -52,11 +52,13 @@ class StagedFile:
         if used + self.size > settings.MAX_OWNER_STORAGE_BYTES:
             raise StorageQuotaExceeded
         os.replace(self.temporary_path, self.root / self.key)
-        directory = os.open(self.root, os.O_RDONLY)
-        try:
-            os.fsync(directory)
-        finally:
-            os.close(directory)
+        # Windows does not support opening a directory through os.open for fsync.
+        if os.name == "posix":
+            directory = os.open(self.root, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
         return StoredFile.objects.create(owner_id=owner_id, storage_key=self.key, original_name=name,
                                          media_type="text/csv", size_bytes=self.size, sha256=self.sha256, kind=kind)
 

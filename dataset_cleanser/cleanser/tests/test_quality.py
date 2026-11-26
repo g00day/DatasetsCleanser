@@ -37,8 +37,8 @@ class QualityEndpoints(EndpointTestCase):
         self.assertEqual(self.initial["checkedColumnCount"], 3)
         self.assertEqual(self.initial["issueCount"], 6)
         self.assertEqual(self.initial["affectedRowCount"], 3)
-        self.assertIsNone(self.initial["qualityScore"])
-        self.assertIsNone(self.initial["scoreFormulaVersion"])
+        self.assertEqual(self.initial["qualityScore"], 40)
+        self.assertEqual(self.initial["scoreFormulaVersion"], 1)
         summary = self.get(f"{self.path}/quality-summary")
         self.assertEqual(summary["status"], "ready")
         self.assertFalse(summary["isStale"])
@@ -46,6 +46,16 @@ class QualityEndpoints(EndpointTestCase):
         self.assertEqual(summary["lastSuccessfulCheckRunId"], self.initial["id"])
         self.assertEqual(summary["result"]["issueCount"], 6)
         self.assertEqual(self.get(f"/datasets/{self.dataset['datasetId']}/audit-events")["items"], [])
+
+    def test_score_for_historical_checks_uses_saved_row_counts(self):
+        run = QualityCheckRun.objects.filter(pk=self.initial["id"])
+        for checked, affected, expected in [(5, 5, 0), (5, 0, 100), (3, 1, 66.6667), (0, 0, None)]:
+            with self.subTest(checked=checked, affected=affected):
+                run.update(quality_score=None, score_formula_version=None,
+                           checked_row_count=checked, affected_row_count=affected)
+                result = self.get(f"{self.path}/quality-summary")["result"]
+                self.assertEqual(result["qualityScore"], expected)
+                self.assertEqual(result["scoreFormulaVersion"], 1)
 
     def test_issue_endpoints_filter_and_group_without_exposing_cell_values(self):
         run = f"/checks/{self.initial['id']}"

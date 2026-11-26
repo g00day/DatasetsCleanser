@@ -23,6 +23,7 @@ from .models import (
     Status, StoredFile, VersionColumn, VersionRow,
 )
 from .operations import create_check, initialize_configuration, job_resource
+from .quality import SCORE_FORMULA_VERSION, quality_score
 
 logger = logging.getLogger(__name__)
 BATCH_SIZE = 500
@@ -244,9 +245,12 @@ def run_check(execution):
             run.checked_column_count = len(columns)
             run.issue_count = issue_count
             run.affected_row_count = affected_rows
+            run.quality_score = quality_score(checked_rows, affected_rows)
+            run.score_formula_version = SCORE_FORMULA_VERSION
             run.finished_at = execution.complete(job)
             run.save(update_fields=["status", "checked_row_count", "checked_column_count",
-                                    "issue_count", "affected_row_count", "finished_at"])
+                                    "issue_count", "affected_row_count", "quality_score",
+                                    "score_formula_version", "finished_at"])
 
 
 def apply_row_removals(rows, operation, heartbeat):

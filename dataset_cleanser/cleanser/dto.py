@@ -1,5 +1,6 @@
 from .models import ACTIVE_STATUSES, DatasetVersion, Status
 from .operations import RESOURCE_TYPES
+from .quality import SCORE_FORMULA_VERSION, quality_score
 
 
 def reference(resource):
@@ -63,10 +64,16 @@ def configuration_dto(configuration):
 
 
 def check_metrics(run):
+    score = run.quality_score
+    formula_version = run.score_formula_version
+    # Older successful checks already contain the row counts needed for this formula.
+    if run.status == Status.SUCCEEDED and formula_version is None and score is None:
+        score = quality_score(run.checked_row_count, run.affected_row_count)
+        formula_version = SCORE_FORMULA_VERSION
     return {"configurationRevision": run.configuration_revision, "checkedRowCount": run.checked_row_count,
             "checkedColumnCount": run.checked_column_count, "issueCount": run.issue_count,
-            "affectedRowCount": run.affected_row_count, "qualityScore": run.quality_score,
-            "scoreFormulaVersion": run.score_formula_version}
+            "affectedRowCount": run.affected_row_count, "qualityScore": float(score) if score is not None else None,
+            "scoreFormulaVersion": formula_version}
 
 
 def check_dto(run):
